@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+    <title>game</title>
+</head>
+
+<body>
+    <div id="intro" class="menu">
+        <h3>This is a simple game make by me </h3>
+        <ul><strong>How to play </strong></ul>
+        <li>On PC: press arrow up and arrow down button on key board</li>
+        <li>On mobile: press button arrow up and arrow down bellow</li>
+        <button onclick="startGame()"> click here to play</button>
+    </div>
+    <div class="menu" id="console">
+        <p>Your score:<b id="score">0</b></p><button onclick="location.reload()">Play Again</button>
+    </div>
+    <div id="modal" class="w3-modal">
+        <div class="w3-modal-content">
+            <div class="w3-container w3-center">
+                <span onclick="document.getElementById('modal').style.display='none'"
+                    class="w3-button w3-display-topright w3-red">&times;</span>
+                <hr>
+                <p>Game Over ! </p>
+                <p>Your score: <b id="showScore"></b></p>
+                <hr>
+            </div>
+        </div>
+    </div>
+    <div id="controlTouch">
+        <button class="btn" ontouchstart="moveup()" ontouchend="clearmove()">&#5123;</button><br>
+        <button class="btn" ontouchstart="movedown()" ontouchend="clearmove()">&#5121;</button>
+    </div>
+    <style>
+        canvas {
+            width: 50%;
+            height: 400px;
+            border: 3px solid rgb(165, 78, 78);
+            margin: auto;
+            background-color: cornsilk;
+        }
+        #console{
+            display: none;
+        }
+        #controlTouch {
+            display: none;
+        }
+
+        .menu {
+            padding-left: 5%;
+        }
+
+        @media only screen and (max-width: 600px) {
+            canvas {
+                width: 100%;
+            }
+
+            #controlTouch {
+                display: block;
+                padding-top: 10%;
+                padding-left: 40%;
+            }
+
+            .btn {
+                border: 1px solid black;
+                margin: 5px;
+                background-color: rgb(155, 182, 233);
+                width: 100px;            
+            }
+        }
+    </style>
+    <script>
+        var character, obstacle = [], score = 0;
+        var scoreUpload;
+        function startGame() {
+            document.getElementById("intro").style.display = "none";
+            document.getElementById("console").style.display = "block";
+            GameArea.start();
+            character = new component(10, 10, "black", 20, 100);
+        }
+        //creat game area
+        var GameArea = {
+            canvas: document.createElement("canvas"),
+            start: function () {
+                this.context = this.canvas.getContext("2d");
+                document.body.insertBefore(this.canvas, document.body.childNodes[0]);
+                this.frameNo = 0;
+                //up load gameArea after every 30 milisecond
+                this.interval = setInterval(uploadGame, 30);
+                //add control key board
+                window.addEventListener("keydown", function (event) {
+                    GameArea.key = event.keyCode;
+                    if (GameArea.key && GameArea.key == 38) moveup();
+                    if (GameArea.key && GameArea.key == 40) movedown();
+                });
+                window.addEventListener('keyup', function (event) {
+                    GameArea.key = false;
+                    character.speedX = 0;
+                    character.speedY = 0;
+                });
+            },
+            clear: function () {
+                this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+            },
+            stop: function () {
+                clearInterval(this.interval);
+
+            }
+        }
+        // add component
+        function component(width, height, color, x, y) {
+            this.width = width;
+            this.height = height;
+            this.speedX = 0;
+            this.speedY = 0;
+            this.x = x;
+            this.y = y;
+            this.upload = function () {
+                ctx = GameArea.context;
+                ctx.fillStyle = color;
+                ctx.fillRect(this.x, this.y, this.width, this.height);
+            }
+            this.position = function () {
+                this.x += this.speedX;
+                this.y += this.speedY;
+            }
+            //when obj hit a obstacle
+            this.crashWith = function (other) {
+                var left = this.x;
+                var right = this.x + (this.width);
+                var top = this.y;
+                var bottom = this.y + (this.height);
+                var otherleft = other.x;
+                var otherright = other.x + (other.width);
+                var othertop = other.y;
+                var otherbottom = other.y + (other.height);
+                var crash = true;
+                //when position of obj != positon of obstacle
+                if ((bottom < othertop) || (top > otherbottom) || (right < otherleft) || (left > otherright)) {
+                    //when obj reach GameArea line
+                    if (top > 1 && bottom < 150) crash = false;
+                }
+                return crash;
+            }
+        }
+        //The everyinterval function returns true if the current framenumber corresponds with the given interval !?
+        function everyinterval(n) {
+            if ((GameArea.frameNo / n) % 1 == 0) return true;
+            return false;
+        }
+        function moveup() {
+            character.speedY = -2.5;
+            score++;
+        }
+        function movedown() {
+            character.speedY = +2;
+            score++;
+        }
+        function clearmove() {
+            character.speedX = 0;
+            character.speedY = 0;
+        }
+        function score() {
+            document.getElementById("score").innerHTML = score;
+        }
+        function uploadGame() {
+            var width1, height1, x, y;
+            //game over
+            for (var i = 0; i < obstacle.length; i++) {
+                if (character.crashWith(obstacle[i])) {
+                    GameArea.stop();
+                    document.getElementById('modal').style.display = 'block';
+                    document.getElementById('showScore').innerHTML = score;
+                    document.getElementById('PlayAgain').style.display = 'block';
+                }
+            }
+            GameArea.clear();
+            GameArea.frameNo += 1;
+            //component(width, height, color, x, y)
+            if (GameArea.frameNo == 1 || everyinterval(90)) {
+                x = GameArea.canvas.width;
+                y = GameArea.canvas.height;
+                width1 = Math.floor(Math.random() * (70 - 15)) + 15;
+                height1 = Math.floor(Math.random() * (130 - 70)) + 70;
+                y = Math.floor(Math.random() * (140 - 0)) + 0;
+                obstacle.push(new component(width1, height1, "red", x, y));
+            }
+            for (i = 0; i < obstacle.length; i += 1) {
+                obstacle[i].x += -2;
+                obstacle[i].upload();
+            }
+            character.position();
+            character.y += 1;
+            document.getElementById("score").innerHTML = score;
+            character.upload();
+        }
+
+    </script>
+</body>
+
+</html>
