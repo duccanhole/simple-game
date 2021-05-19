@@ -1,2 +1,2 @@
 # simple game project
-https://duccanhole.github.io/simple-game/game.htm
+https://duccanhole.github.io/simple-game/index.html
